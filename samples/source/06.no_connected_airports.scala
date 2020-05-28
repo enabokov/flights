@@ -11,7 +11,7 @@ val routes = sqlContext.read.format("csv").option("delimiter", ",").option("quot
 var airlines = sqlContext.read.format("csv").option("delimiter", ",").option("quote", "").option("header", "true").option("inferSchema", "true").csv("/opt/spark-data/airlines.dat")
 
 // select airline ID and its name
-val airlinesVertices: RDD[(VertexId, String)] = airlines.select(col("airline_id").cast("long"), col("name")).na.drop().distinct().rdd.map(row => (row.getLong(0), (row.getString(1))))
+val airlinesVertices: RDD[(VertexId, String)] = airlines.select(col("airline_id").cast("long"), col("name")).na.drop().distinct().rdd.map(row => (row.getLong(0), row.getString(1)))
 airlinesVertices.count()
 airlinesVertices.take(10)
 
@@ -30,25 +30,6 @@ val routeGraph = Graph(airlinesVertices, routesEdges, defaultRoute)
 val validRouteGraph = routeGraph.subgraph(vpred = (id, name) => name != "unknown")
 validRouteGraph.cache()
 
-// test
-validRouteGraph.vertices.filter{x => x._2 == "\"Airways International\""}.count
-
-// query 1
-
-// airline with max sum of distances
-def max(a: (VertexId, Int), b: (VertexId, Int)): (VertexId, Int) = {
-  if (a._2 > b._2) a else b
-}
-val maxDegrees: (Long, Int) = validRouteGraph.degrees.reduce(max)
-
-println("Max number of routes for: ")
-validRouteGraph.vertices.filter(x => x._1 == maxDegrees._1).collect.foreach(println)
-
-// airline with min sum of distances
-def min(a: (VertexId, Int), b: (VertexId, Int)): (VertexId, Int) = {
-  if (a._2 < b._2) a else b
-}
-val minDegrees: (Long, Int) = validRouteGraph.degrees.reduce(min)
-
-println("Min number of routes for: ")
-validRouteGraph.vertices.filter(x => x._1 == minDegrees._1).collect.foreach(println)
+// // search and exclude
+val connectedVertices = validRouteGraph.connectedComponents().vertices.collect
+validRouteGraph.subgraph(vpred = (id, attr) => !connectedVertices.contains(id)).vertices.collect.take(10).foreach(println)
