@@ -34,8 +34,8 @@ val routeGraph = Graph(airportsVertices, routesEdges, defaultRoute)
 val validRouteGraph = routeGraph.subgraph(vpred = (id, airline) => airline.name != "unknown")
 validRouteGraph.cache()
 
-def getDFS[VT](graph: Graph[Airport,Long], sourceId: VertexId, distId: VertexId) = {
-    val dfs = graph.pregel(Airport("\"Boryspil\"", "\"Ukraine\"", false, ""), 3, EdgeDirection.Out) (
+def flightFromUkraineToItaly[VT](graph: Graph[Airport,Long]) = {
+    val dfs = graph.pregel(Airport("\"Boryspil\"", "\"Ukraine\"", false, ""), Int.MaxValue, EdgeDirection.Out) (
       (vertex: VertexId, current: Airport, message: Airport) => {
         Airport(current.name, current.country, true, message.path) 
       },
@@ -45,10 +45,10 @@ def getDFS[VT](graph: Graph[Airport,Long], sourceId: VertexId, distId: VertexId)
 
         if (destinationVertex.country == "\"Italy\"" && sourceVertex.country == "\"Ukraine\"") {
           // path += s"Direct ${sourceVertex.country} to ${destinationVertex.country} (${sourceVertex} to ${destinationVertex})"
-          println(s"Direct flight ${sourceVertex.country} to ${destinationVertex.country} (${sourceVertex} to ${destinationVertex})")
+          println(s"Direct flight ${sourceVertex.country} (${sourceVertex.name}) to ${destinationVertex.country} (${destinationVertex.name})")
           Iterator.empty
         } else if (destinationVertex.country == "\"Italy\""  && sourceVertex.country != "\"Italy\"") {
-          println(s"${sourceVertex.path} via ${sourceVertex.country} to ${destinationVertex.country} (${sourceVertex.name} -- ${destinationVertex.name})")
+          println(s"${sourceVertex.path} via ${sourceVertex.country} (${sourceVertex.name}) to ${destinationVertex.country} (${sourceVertex.name} -- ${destinationVertex.name})")
           Iterator((triplet.dstId, Airport(destinationVertex.name, destinationVertex.country, true, s"${sourceVertex.path} via ${destinationVertex.country}")))
         } else if (sourceVertex.country == "\"Ukraine\"" && destinationVertex.country != "\"Ukraine\"") {
           println(s"Flight from ${sourceVertex.country} (${sourceVertex.name})")
@@ -63,4 +63,4 @@ def getDFS[VT](graph: Graph[Airport,Long], sourceId: VertexId, distId: VertexId)
   }
 
 
-getDFS(validRouteGraph, 2965, 2990)
+flightFromUkraineToItaly(validRouteGraph)
