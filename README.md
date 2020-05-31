@@ -33,3 +33,9 @@ docker exec -it spark-master bash
 ```
 http://localhost:8080/dashboard/
 ````
+
+## Access spark master web ui
+
+```
+http://sparkweb.docker.localhost/
+```
