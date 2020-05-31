@@ -1,6 +1,6 @@
 # Analysis of flights with GraphX
 
-Implemeted with spark and scala using graphx
+Implemented with Spark and Scala using GraphX
 
 ## HowTo
 
@@ -26,6 +26,19 @@ docker exec -it flights-spark-master bash
 
 ```
 :load /opt/spark-scripts/01.max_min_distance.scala
+```
+
+## Register application
+
+```
+/opt/spark/bin/spark-submit \
+    --class org.apache.spark.examples.SparkPi \
+    --master spark://<spark-master-container-id>:7077 \
+    --deploy-mode cluster \
+    --supervise \
+    --executor-memory 3G \
+    --total-executor-cores 10 \
+    /opt/spark/examples/jars/spark-examples_2.11-2.4.5.jar 100
 ```
 
 ## Monitoring
