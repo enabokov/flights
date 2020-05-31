@@ -1,0 +1,42 @@
+version: "3.3"
+services:
+  traefik:
+    image: traefik:v2.2
+    command:
+      - --api.insecure
+      - --providers.docker
+      - --entrypoints.web.address=:80
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  spark-master:
+    image: bde2020/spark-master:2.4.5-hadoop2.7
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sparkweb.rule=Host(`sparkweb.docker.localhost`)"
+      - "traefik.http.services.sparkweb.loadbalancer.server.port=8080"
+      - "traefik.http.routers.sparkweb.service=sparkweb"
+      - "traefik.http.routers.sparkmaster.rule=Host(`sparkmaster.docker.localhost`)"
+      - "traefik.http.services.sparkmaster.loadbalancer.server.port=7077"
+      - "traefik.http.routers.sparkmaster.service=sparkmaster"
+      - "traefik.http.routers.sparkworkerweb.rule=Host(`sparkworkerweb.docker.localhost`)"
+      - "traefik.http.services.sparkworkerweb.loadbalancer.server.port=6066"
+      - "traefik.http.routers.sparkworkerweb.service=sparkworkerweb"
+    volumes:
+       - ./scripts:/opt/spark-scripts
+       - ./data:/opt/spark-data
+  spark-worker:
+    image: bde2020/spark-worker:2.4.5-hadoop2.7
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sparkworker.rule=Host(`sparkworker.docker.localhost`)"
+      - "traefik.http.services.sparkworker.loadbalancer.server.port=8081"
+      - "traefik.http.routers.sparkworker.service=sparkworker"
+    depends_on:
+      - spark-master
+    env_file: ./spark-worker.env
+    volumes:
+      - ./scripts:/opt/spark-scripts
+      - ./data:/opt/spark-data
