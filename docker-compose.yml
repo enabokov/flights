@@ -12,7 +12,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   spark-master:
-    image: bde2020/spark-master:2.4.5-hadoop2.7
+    image: spark-master:2.4.5
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sparkweb.rule=Host(`sparkweb.docker.localhost`)"
@@ -28,7 +28,7 @@ services:
        - ./scripts:/opt/spark-scripts
        - ./data:/opt/spark-data
   spark-worker:
-    image: bde2020/spark-worker:2.4.5-hadoop2.7
+    image: spark-worker:2.4.5
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sparkworker.rule=Host(`sparkworker.docker.localhost`)"
